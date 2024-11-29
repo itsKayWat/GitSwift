@@ -6,6 +6,8 @@ from github import Github, GithubException
 from datetime import datetime
 import json
 from pathlib import Path
+import webbrowser
+from urllib.parse import urlencode
 
 # Enable High DPI scaling
 if hasattr(Qt, 'AA_EnableHighDpiScaling'):
@@ -102,6 +104,9 @@ class GitHubUploader(QtWidgets.QWidget):
         self.token_combo.setCurrentText("")
         self.token_combo.currentIndexChanged.connect(self.token_selected)
         
+        self.create_token_button = QtWidgets.QPushButton("Create New Token")
+        self.create_token_button.clicked.connect(self.create_new_token)
+        
         self.delete_token_button = QtWidgets.QPushButton("Delete Token")
         self.delete_token_button.clicked.connect(self.delete_token)
         self.delete_token_button.setEnabled(False)  # Disable until a saved token is selected
@@ -111,6 +116,7 @@ class GitHubUploader(QtWidgets.QWidget):
         
         token_layout.addWidget(token_label)
         token_layout.addWidget(self.token_combo)
+        token_layout.addWidget(self.create_token_button)
         token_layout.addWidget(self.delete_token_button)
         token_layout.addWidget(self.save_token_checkbox)
         layout.addLayout(token_layout)
@@ -179,6 +185,12 @@ class GitHubUploader(QtWidgets.QWidget):
         self.upload_button.setEnabled(False)
         layout.addWidget(self.upload_button)
 
+        # Update Button (new)
+        self.update_button = QtWidgets.QPushButton("Update Repository")
+        self.update_button.clicked.connect(self.update_existing_repository)
+        self.update_button.setEnabled(False)
+        layout.addWidget(self.update_button)
+
         # Status Display
         self.status_display = QtWidgets.QTextEdit()
         self.status_display.setReadOnly(True)
@@ -244,6 +256,7 @@ class GitHubUploader(QtWidgets.QWidget):
             
             self.log_status(f"Authenticated as {self.user.login}")
             self.upload_button.setEnabled(True)
+            self.update_button.setEnabled(True)  # Enable update button
             QtWidgets.QMessageBox.information(self, "Success", f"Authenticated as {self.user.login}")
             
         except GithubException as e:
@@ -321,6 +334,29 @@ class GitHubUploader(QtWidgets.QWidget):
         directory = QtWidgets.QFileDialog.getExistingDirectory(self, "Select Project Directory")
         if directory:
             self.dir_input.setText(directory)
+            
+            # Auto-fill repository name from directory name
+            repo_name = os.path.basename(directory)
+            is_valid, cleaned_name = self.validate_repo_name(repo_name)
+            if is_valid:
+                self.repo_input.setText(cleaned_name)
+                
+                # Check if repository exists
+                existing_repo = self.check_existing_repository(cleaned_name)
+                if existing_repo:
+                    reply = QtWidgets.QMessageBox.question(
+                        self,
+                        'Repository Exists',
+                        f'A repository named "{cleaned_name}" already exists. Would you like to update it?',
+                        QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                        QtWidgets.QMessageBox.Yes
+                    )
+                    
+                    if reply == QtWidgets.QMessageBox.Yes:
+                        self.log_status(f"Selected existing repository: {cleaned_name}")
+                    else:
+                        # Clear the name if user doesn't want to update
+                        self.repo_input.clear()
 
     def validate_repo_name(self, name):
         # Remove any whitespace
@@ -347,12 +383,9 @@ class GitHubUploader(QtWidgets.QWidget):
 
         project_path = self.dir_input.text().strip()
         repo_name = self.repo_input.text().strip()
-        description = self.desc_input.text().strip()
-        author = self.author_input.text().strip()
-        is_private = self.private_checkbox.isChecked()
 
         # Validate inputs
-        if not all([project_path, repo_name, author]):
+        if not all([project_path, repo_name]):
             QtWidgets.QMessageBox.warning(self, "Input Error", "Please fill in all required fields.")
             return
 
@@ -363,43 +396,55 @@ class GitHubUploader(QtWidgets.QWidget):
             return
         repo_name = result
 
-        # Clean description
-        if description:
-            description = ''.join(char for char in description if char >= ' ').strip()
-            description = ' '.join(description.split())
-            
-            if len(description) > 350:
-                QtWidgets.QMessageBox.warning(self, "Input Error", 
-                    "Description must be 350 characters or less.\n"
-                    f"Current length: {len(description)} characters")
-                return
-
         try:
-            # Create repository
-            self.log_status(f"Creating {'private' if is_private else 'public'} repository...")
-            repo = self.user.create_repo(
-                name=repo_name,
-                description=description if description else None,
-                private=is_private,
-                auto_init=True
-            )
-
-            self.log_status(f"Repository created: {repo.html_url}")
-
-            # Upload files
-            self.log_status("Uploading files...")
-            self.upload_directory(repo, project_path)
+            # Check if repository exists
+            existing_repo = self.check_existing_repository(repo_name)
             
-            self.log_status("Project uploaded successfully!")
-            QtWidgets.QMessageBox.information(self, "Success", 
-                f"Project uploaded successfully!\nRepository URL: {repo.html_url}")
-            
+            if existing_repo:
+                # Confirm update
+                reply = QtWidgets.QMessageBox.question(
+                    self,
+                    'Update Repository',
+                    f'Repository "{repo_name}" already exists. Do you want to update it?',
+                    QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                    QtWidgets.QMessageBox.No
+                )
+                
+                if reply == QtWidgets.QMessageBox.Yes:
+                    self.log_status(f"Updating repository: {repo_name}")
+                    updates = self.update_repository(existing_repo, project_path)
+                    
+                    if updates:
+                        update_list = "\n".join([f"- {file}" for file in updates])
+                        QtWidgets.QMessageBox.information(
+                            self,
+                            "Update Complete",
+                            f"The following files were updated:\n\n{update_list}"
+                        )
+                    self.log_status("Repository update completed!")
+                    
+                return
+            else:
+                # Create new repository as before
+                self.log_status(f"Creating {'private' if self.private_checkbox.isChecked() else 'public'} repository...")
+                repo = self.user.create_repo(
+                    name=repo_name,
+                    description=self.desc_input.text().strip(),
+                    private=self.private_checkbox.isChecked(),
+                    auto_init=True
+                )
+                self.log_status(f"Repository created: {repo.html_url}")
+                self.upload_directory(repo, project_path)
+                
+                self.log_status("Project uploaded successfully!")
+                QtWidgets.QMessageBox.information(
+                    self,
+                    "Success", 
+                    f"Project uploaded successfully!\nRepository URL: {repo.html_url}"
+                )
+
         except GithubException as e:
             error_message = e.data.get('message', str(e)) if hasattr(e, 'data') else str(e)
-            if isinstance(e.data, dict) and 'errors' in e.data:
-                error_details = '\n'.join([f"- {err.get('message', '')}" for err in e.data['errors']])
-                error_message = f"{error_message}\n\nDetails:\n{error_details}"
-            
             self.log_status(f"Error: {error_message}")
             QtWidgets.QMessageBox.critical(self, "Error", f"An error occurred:\n\n{error_message}")
         except Exception as e:
@@ -424,6 +469,122 @@ class GitHubUploader(QtWidgets.QWidget):
                     self.log_status(f"Uploaded: {relative_path}")
                 except Exception as e:
                     self.log_status(f"Failed to upload {relative_path}: {str(e)}")
+
+    def create_new_token(self):
+        # GitHub token creation URL with pre-selected scopes
+        params = {
+            'description': 'GitSwift Upload Token',
+            'scopes': 'repo,workflow,write:packages,delete:packages'
+        }
+        
+        url = f"https://github.com/settings/tokens/new?{urlencode(params)}"
+        
+        # Show instructions
+        QtWidgets.QMessageBox.information(
+            self,
+            "Create New Token",
+            "You will be redirected to GitHub to create a new token.\n\n"
+            "1. Login to GitHub if needed\n"
+            "2. Review the pre-selected permissions\n"
+            "3. Click 'Generate token'\n"
+            "4. Copy the generated token\n"
+            "5. Paste it back in GitSwift\n\n"
+            "Note: You will only see the token once on GitHub!"
+        )
+        
+        # Open default browser to token creation page
+        webbrowser.open(url)
+
+    def check_existing_repository(self, repo_name):
+        try:
+            return self.user.get_repo(repo_name)
+        except GithubException:
+            return None
+
+    def update_repository(self, repo, directory_path):
+        updates = []
+        for root, dirs, files in os.walk(directory_path):
+            for file in files:
+                file_path = os.path.join(root, file)
+                relative_path = os.path.relpath(file_path, directory_path)
+                
+                try:
+                    # Try to get existing file content
+                    existing_file = repo.get_contents(relative_path)
+                    with open(file_path, 'rb') as f:
+                        new_content = f.read()
+                    
+                    # Compare contents
+                    if existing_file.decoded_content != new_content:
+                        repo.update_file(
+                            relative_path,
+                            f"Updated {relative_path}",
+                            new_content,
+                            existing_file.sha
+                        )
+                        updates.append(relative_path)
+                        self.log_status(f"Updated: {relative_path}")
+                
+                except GithubException as e:
+                    if e.status == 404:  # File doesn't exist
+                        # Add new file
+                        with open(file_path, 'rb') as f:
+                            content = f.read()
+                        repo.create_file(
+                            relative_path,
+                            f"Added {relative_path}",
+                            content
+                        )
+                        self.log_status(f"Added new file: {relative_path}")
+                    else:
+                        raise e
+        
+        return updates
+
+    def update_existing_repository(self):
+        if not self.github or not self.user:
+            QtWidgets.QMessageBox.warning(self, "Authentication Error", "Please authenticate first.")
+            return
+
+        project_path = self.dir_input.text().strip()
+        repo_name = self.repo_input.text().strip()
+
+        if not all([project_path, repo_name]):
+            QtWidgets.QMessageBox.warning(self, "Input Error", "Please select a directory and provide a repository name.")
+            return
+
+        try:
+            # Check if repository exists
+            existing_repo = self.check_existing_repository(repo_name)
+            
+            if existing_repo:
+                self.log_status(f"Updating repository: {repo_name}")
+                updates = self.update_repository(existing_repo, project_path)
+                
+                if updates:
+                    update_list = "\n".join([f"- {file}" for file in updates])
+                    QtWidgets.QMessageBox.information(
+                        self,
+                        "Update Complete",
+                        f"The following files were updated:\n\n{update_list}"
+                    )
+                else:
+                    QtWidgets.QMessageBox.information(
+                        self,
+                        "No Changes",
+                        "No files needed updating. Repository is already up to date."
+                    )
+                self.log_status("Repository update completed!")
+            else:
+                QtWidgets.QMessageBox.warning(
+                    self,
+                    "Repository Not Found",
+                    f"No repository named '{repo_name}' was found. Please check the name or use 'Upload to GitHub' to create a new repository."
+                )
+
+        except Exception as e:
+            self.log_status(f"Error: {str(e)}")
+            QtWidgets.QMessageBox.critical(self, "Error", f"An unexpected error occurred:\n\n{str(e)}")
 
 def main():
     try:

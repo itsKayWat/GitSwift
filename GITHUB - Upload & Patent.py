@@ -442,6 +442,7 @@ class GitHubUploader(QtWidgets.QWidget):
                     "Success", 
                     f"Project uploaded successfully!\nRepository URL: {repo.html_url}"
                 )
+                self.clear_fields()
 
         except GithubException as e:
             error_message = e.data.get('message', str(e)) if hasattr(e, 'data') else str(e)
@@ -575,6 +576,7 @@ class GitHubUploader(QtWidgets.QWidget):
                         "No files needed updating. Repository is already up to date."
                     )
                 self.log_status("Repository update completed!")
+                self.clear_fields()
             else:
                 QtWidgets.QMessageBox.warning(
                     self,
@@ -586,8 +588,22 @@ class GitHubUploader(QtWidgets.QWidget):
             self.log_status(f"Error: {str(e)}")
             QtWidgets.QMessageBox.critical(self, "Error", f"An unexpected error occurred:\n\n{str(e)}")
 
+    def clear_fields(self):
+        """Clear specific input fields after operations"""
+        self.dir_input.clear()
+        self.repo_input.clear()
+        self.desc_input.clear()
+
 def main():
     try:
+        # Import Windows-specific modules
+        import win32gui
+        import win32con
+        
+        # Hide console window
+        console_window = win32gui.GetForegroundWindow()
+        win32gui.ShowWindow(console_window, win32con.SW_HIDE)
+        
         app = QtWidgets.QApplication(sys.argv)
         uploader = GitHubUploader()
         uploader.show()

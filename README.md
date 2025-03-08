@@ -1,4 +1,4 @@
-[https://sites.google.com/view/gitswift
+https://sites.google.com/view/gitswift
 
 # GitSwift
 

@@ -4,8 +4,6 @@
 
 GitSwift is a user-friendly GUI tool that simplifies uploading your local projects to GitHub. Manage your tokens securely, create repositories, and seamlessly upload files with ease. Perfect for developers seeking an efficient way to host their code.
 
-![GitSwift Banner](https://i.imgur.com/YourBannerImage.png)
-
 ## Features
 
 - **Simple Repository Creation** - Create GitHub repositories with just a few clicks

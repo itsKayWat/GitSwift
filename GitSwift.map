@@ -1,0 +1,267 @@
+# GitSwift Project Map
+
+## Repository Structure
+- 📁 src/
+  - 📁 components/
+    - 📁 common/          # Reusable UI elements
+    - 📁 visualizations/  # Git visualization components
+    - 📁 diff/            # Code diff viewers
+    - 📁 auth/            # Authentication components
+    - 📁 analytics/       # Stats and metrics components (planned)
+    - 📁 offline/         # Offline capability components (planned)
+    - 📁 i18n/            # Internationalization components (planned)
+  - 📁 hooks/             # Custom React hooks
+  - 📁 pages/             # Main application pages
+  - 📁 utils/
+    - 📁 git/             # Git operation utilities
+    - 📁 formatting/      # Data formatting utilities
+    - 📁 validation/      # Input validation utilities
+    - 📁 performance/     # Performance optimization utilities (planned)
+  - 📁 api/
+    - 📁 github/          # GitHub API integration
+    - 📁 gitlab/          # GitLab API integration
+    - 📁 bitbucket/       # Bitbucket API integration
+    - 📁 local/           # Local Git repository handlers
+    - 📁 cache/           # API response caching (planned)
+  - 📁 context/           # React context providers
+  - 📁 plugins/           # Plugin system architecture (planned)
+  - 📁 workers/           # Web workers for heavy operations (planned)
+  - 📁 tests/             # Test suites (planned)
+- 📁 public/              # Static assets
+- 📁 styles/              # CSS/SCSS files
+- 📁 docs/                # Extended documentation (planned)
+  - 📁 api/               # API documentation
+  - 📁 architecture/      # Architecture diagrams
+  - 📁 user-guides/       # End-user guides
+- 📄 README.html          # Project documentation
+- 📄 LICENSE              # MIT license
+- 📄 .github/             # GitHub specific files
+  - 📄 workflows/         # CI/CD workflows (planned)
+
+## File Types & Relationships
+- **.jsx/.tsx**: React components
+  - Related: CSS modules, context providers
+- **.js/.ts**: Utility functions, hooks, API calls
+  - Related: API endpoints, context consumers
+- **.css/.scss**: Styling
+  - Related: Component files that import them
+- **.html**: Static pages and documentation
+  - Related: CSS files, asset references
+- **package.json**: Dependencies and scripts
+  - Related: All source files that import packages
+- **.worker.js**: Web worker scripts (planned)
+  - Related: Heavy computation tasks
+- **.test.js/.test.ts**: Test files (planned)
+  - Related: The components/functions they test
+
+## UI Layer Sequence (Front to Back)
+1. **User Interface Layer**: React components (src/components/)
+2. **Page Structure Layer**: Page layouts (src/pages/)
+3. **State Management Layer**: Context providers (src/context/)
+4. **Data Fetching Layer**: API calls and hooks (src/api/, src/hooks/)
+5. **Utility Layer**: Helper functions (src/utils/)
+6. **Backend Integration**: External APIs and services
+7. **Web Worker Layer**: Background processing (planned) (src/workers/)
+8. **Plugin System**: Extensibility layer (planned) (src/plugins/)
+
+## Workflow
+1. User interacts with UI components
+2. Components trigger state changes via context
+3. State changes trigger API calls when needed
+4. API responses update state
+5. Updated state flows back to components
+6. UI updates to reflect new state
+7. Heavy operations offloaded to web workers (planned)
+8. Custom functionality via plugin system (planned)
+
+## Roadmap & Progress
+
+### Completed ✅
+- Project setup and structure
+- Basic UI components
+- Core Git operation functionality
+- README documentation
+- Developer donation section
+- Basic GitHub API integration
+- User preferences persistence
+- Dark/light mode toggle
+- Basic commit history visualization
+
+### In Progress 🔄
+- Enhanced Git integration features
+- Improved visualization components
+- Performance optimizations
+- User authentication system
+- Advanced filtering options
+- GitLab API integration
+- Bitbucket API integration
+- Local repository handling
+- Branch management interface
+- Real-time collaboration features
+- Error handling improvements
+
+### Not Started ⏳
+- Mobile responsiveness improvements
+- Offline capabilities
+- Internationalization (i18n) support
+- Advanced analytics dashboard
+- Plugin system for extensions
+- Web worker implementation for heavy tasks
+- Comprehensive test suite
+- CI/CD pipeline configuration
+- Documentation portal
+- Performance profiling tools
+- Advanced search capabilities
+- Customizable dashboards
+- Notifications system
+- Team collaboration features
+- User permissions management
+- Custom visualization themes
+
+## Current Status: ALPHA (v0.3.2)
+Overall completion: ~40%
+
+## Future Projections
+
+### Q3 2023: Beta Release (v0.5.0)
+- Complete all "In Progress" items
+- Begin user testing phase
+- Implement core feedback mechanisms
+- Key Milestones:
+  - Complete all API integrations (GitHub, GitLab, Bitbucket)
+  - Launch authentication system
+  - Release improved visualization components
+  - Implement basic error boundary system
+  - Achieve 50% test coverage
+
+### Q4 2023: Feature-Complete Beta (v0.8.0)
+- Address all critical feedback
+- Complete 80% of backlog items
+- Begin performance optimization phase
+- Key Milestones:
+  - Launch mobile responsive interface
+  - Implement offline capabilities (basic)
+  - Start internationalization (i18n) with 3 languages
+  - Release initial plugin system architecture
+  - Begin web worker implementation
+
+### Q1 2024: Release Candidate (v0.9.0)
+- All core features implemented
+- Aggressive performance optimization
+- User experience refinement
+- Key Milestones:
+  - Complete team collaboration features
+  - Advanced search capabilities
+  - Customizable dashboards
+  - Analytics dashboard
+  - Complete offline capabilities
+  - Expand i18n to 10 languages
+
+### Q2 2024: Production Release (v1.0.0)
+- All planned features implemented
+- Documentation complete
+- CI/CD pipeline established
+- Enterprise-grade stability
+- Key Milestones:
+  - Advanced plugin marketplace
+  - Full test coverage (80%+)
+  - Complete documentation portal
+  - Performance benchmarks met
+  - Accessibility compliance (WCAG AAA)
+
+### Q3-Q4 2024: Feature Expansion (v1.x)
+- Enterprise features
+- Advanced integrations
+- Machine learning code insights
+- Key Milestones:
+  - AI-powered commit message suggestions
+  - Predictive merge conflict detection
+  - Code quality analysis integration
+  - Enterprise SSO options
+  - Custom workflow automations
+
+### 2025: GitSwift Pro (v2.0)
+- Commercial offering
+- Advanced team capabilities
+- Enterprise deployment options
+- Key Milestones:
+  - Self-hosted enterprise version
+  - Advanced security features
+  - Compliance reporting for regulated industries
+  - Custom CI/CD integrations
+  - White-labeling options
+
+## Known Issues & Improvements Needed
+
+### Critical Flags 🚩
+- Authentication token expiration handling needs improvement
+- Memory leak in visualization components
+- Race condition in concurrent Git operations
+- Security vulnerability in dependency parsing
+- Cross-browser compatibility issues in diff viewer
+
+### Major Improvements Needed 🔨
+- Reduce bundle size (currently 2.2MB)
+- Implement proper error boundaries
+- Add comprehensive unit tests (current coverage: 32%)
+- Improve accessibility (current WCAG compliance: AA partial)
+- Optimize render performance in large repositories
+- Implement data caching layer
+- Reduce API call frequency
+- Improve cold start performance
+
+### Minor Improvements Needed 🔧
+- Code comments and documentation
+- Type definitions for better IDE support
+- Consistent naming conventions
+- Dark mode refinements in some UI components
+- Loading state indicators
+- Error message clarity
+- Keyboard shortcuts documentation
+- Focus management improvements
+
+## Performance Metrics
+- Initial load time: 2.3s (target: 1.2s)
+- Time to interactive: 3.1s (target: 1.8s)
+- Lighthouse score: 78/100 (target: 95/100)
+- Bundle size: 2.2MB (target: 1.3MB)
+- Memory usage: 180MB (target: 120MB)
+- API request latency: 420ms avg (target: 250ms)
+- Rendering performance: 45fps (target: 60fps)
+
+## Integration Points
+- GitHub API
+- GitLab API
+- Bitbucket API
+- Local Git repositories
+- CI/CD systems (Jenkins, GitHub Actions, GitLab CI)
+- Issue trackers (JIRA, GitHub Issues, GitLab Issues)
+- Code review systems
+- Slack/Discord notifications (planned)
+- IDE plugins (planned)
+- Custom webhook support (planned)
+
+## Development Environment
+- Node.js v16+
+- React v18
+- TypeScript v4.5+
+- Webpack v5
+- ESLint + Prettier
+- Jest + React Testing Library
+- Storybook for component development
+- GitHub Actions for CI
+
+## Contribution Areas
+- Feature development
+- Bug fixes
+- Documentation
+- Internationalization
+- Accessibility improvements
+- Performance optimization
+- Test coverage
+- UX research
+
+## Note for Contributors
+This map serves as a living document of GitSwift's structure and roadmap. 
+When making significant changes to the project, please update this map accordingly.
+Last updated: June 15, 2023

@@ -115,5 +115,5 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 - [Documentation](https://sites.google.com/view/gitswift/readme)
 - [GitHub Repository](https://github.com/itsKayWat/GitSwift)
-- [Download Page](https://sites.google.com/view/gitswift/download)
+- [Download Page](https://sites.google.com/view/gitswift)
 )
